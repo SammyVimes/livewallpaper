@@ -16,11 +16,15 @@ public class Star extends AnimatedSprite {
 			VertexBufferObjectManager manager, WorldBundle bundle) {
 		super(pX, pY, pTiledTextureRegion, manager);
 		bundle.getScene().attachChild(this);
-		animate(85);
 	}
 	
 	public void deleteStar() {
+		stopAnimation();
 		detachSelf();
+	}
+	
+	public void blink() {
+		animate(85, 1);
 	}
 
 }

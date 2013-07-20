@@ -10,6 +10,7 @@ import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
+import org.andengine.entity.Entity;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.sprite.Sprite;
@@ -31,6 +32,7 @@ import android.view.WindowManager;
 import com.badlogic.gdx.math.Vector2;
 import com.danilov.mylivewallpaper.Cloud;
 import com.danilov.mylivewallpaper.Star;
+import com.danilov.mylivewallpaper.StarContainer;
 import com.danilov.mylivewallpaper.util.MyEntity;
 
 
@@ -52,7 +54,8 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
     
     private Sprite astranomicalObject;
     
-    private ArrayList<Star> starsList = new ArrayList<Star>();
+    private boolean showStars = false;
+    private StarContainer starContainer;
     
     private String currentTime = "";
     
@@ -149,14 +152,14 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 	public static class WorldBundle {
 		
 		private PhysicsWorld mPhysicsWorld;
-		private MyEntity mScene;
+		private Entity mScene;
 		
-		public WorldBundle(PhysicsWorld mPhysicsWorld, MyEntity mScene) {
+		public WorldBundle(PhysicsWorld mPhysicsWorld, Entity mScene) {
 			this.mPhysicsWorld = mPhysicsWorld;
 			this.mScene = mScene;
 		}
 		
-		public MyEntity getScene() {
+		public Entity getScene() {
 			return mScene;
 		}
 		
@@ -210,6 +213,9 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 					handleTimeChanges();
 					secondsElapsed = 0;
 				}
+				if(showStars) {
+					starContainer.updateStars(pSecondsElapsed);
+				}
 			}
 
 			@Override
@@ -255,7 +261,10 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 	}
 	
 	private void showStars() {
-		deleteStars();
+		if(starContainer != null) {
+			starContainer.deleteStars();
+		}
+		ArrayList<Star> starsList = new ArrayList<Star>();
 		int starsInRow = CAMERA_WIDTH / 80;
 		if(starsInRow >= 6) {
 			starsInRow = 6;
@@ -271,15 +280,15 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 				starsList.add(star);
 			}
 		}
+		starContainer = new StarContainer(starsList);
+		showStars = true;
 	}
 	
 	private void deleteStars() {
-		for(Star star : starsList) {
-			star.stopAnimation();
-			star.detachSelf();
-		}
-		starsList.clear();
+		starContainer.deleteStars();
+		showStars = false;
 	}
+	
 	
 
 }

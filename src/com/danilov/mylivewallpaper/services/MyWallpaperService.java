@@ -20,6 +20,7 @@ import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
 import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.texture.region.ITiledTextureRegion;
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
@@ -34,6 +35,7 @@ import com.danilov.mylivewallpaper.Cloud;
 import com.danilov.mylivewallpaper.Star;
 import com.danilov.mylivewallpaper.StarContainer;
 import com.danilov.mylivewallpaper.util.MyEntity;
+import com.danilov.mylivewallpaper.util.ResourceManager;
 
 
 //TODO: STARS[v], MOON[v], SUN[x]
@@ -41,14 +43,12 @@ import com.danilov.mylivewallpaper.util.MyEntity;
 public class MyWallpaperService extends BaseLiveWallpaperService  {
 	
 	private Camera mCamera;
-    private BitmapTextureAtlas mBitmapTextureAtlas;
+	private ResourceManager resourceManager;
+	
     private Scene mScene;
     private PhysicsWorld mPhysicsWorld;
     private ScreenOrientation mScreenOrientation = ScreenOrientation.LANDSCAPE_FIXED;
-    private ITextureRegion cloudRegion;
-    private ITextureRegion groundRegion;
-    private ITextureRegion moonRegion;
-    private TiledTextureRegion starRegion;
+
     private MyEntity bottomLayer;
     private MyEntity topLayer;
     
@@ -99,10 +99,7 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 		mScene.attachChild(bottomLayer);
 		mScene.attachChild(topLayer);
 		/*TODO: NEXT IS FOR TEST - REMOVE IT LATER*/
-		Sprite groundSprite = new Sprite(0, CAMERA_HEIGHT - 48, groundRegion, mEngine.getVertexBufferObjectManager());
-		getScene().attachChild(groundSprite);
-		groundSprite = new Sprite(groundSprite.getWidth(), CAMERA_HEIGHT - 48, groundRegion, mEngine.getVertexBufferObjectManager());
-		getScene().attachChild(groundSprite);
+		createGround();
 		testCreateClouds();
 		setSceneUpdateHandler();
 		handleTimeChanges();
@@ -110,13 +107,24 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 	}
 	
 	private void testCreateClouds(){
+	    ITiledTextureRegion cloudRegion = resourceManager.getCloudTexture();
 		VertexBufferObjectManager manager = mEngine.getVertexBufferObjectManager();
-		Cloud cloud = new Cloud(30.0f, 90.0f, cloudRegion, manager, new WorldBundle(getPhysicsWorld(), topLayer));
+		Cloud cloud = new Cloud(10.0f, 90.0f, cloudRegion, manager, new WorldBundle(getPhysicsWorld(), topLayer));
 		cloud.createUpdateHandler();
 		cloud = new Cloud(50.0f, 30.0f, cloudRegion, manager, new WorldBundle(getPhysicsWorld(), topLayer));
 		cloud.createUpdateHandler();
-		cloud = new Cloud(10.0f, 60.0f, cloudRegion, manager, new WorldBundle(getPhysicsWorld(), topLayer));
+		cloud = new Cloud(90.0f, 60.0f, cloudRegion, manager, new WorldBundle(getPhysicsWorld(), topLayer));
 		cloud.createUpdateHandler();
+	}
+	
+	private void createGround() {
+		ITextureRegion groundRegion = resourceManager.getGroundTexture();
+		Sprite groundSprite = new Sprite(0, CAMERA_HEIGHT - 48, groundRegion, mEngine.getVertexBufferObjectManager());
+		getScene().attachChild(groundSprite);
+		while ((groundSprite.getX() + groundSprite.getWidth()) < CAMERA_WIDTH) {
+			groundSprite = new Sprite(groundSprite.getWidth(), CAMERA_HEIGHT - 48, groundRegion, mEngine.getVertexBufferObjectManager()); 
+			getScene().attachChild(groundSprite);
+		}	
 	}
 
 	@Override
@@ -126,19 +134,7 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 	}
 	
 	private void loadGameGraphics() {
-		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
-		mBitmapTextureAtlas = new BitmapTextureAtlas(getTextureManager(), 512, 512, TextureOptions.BILINEAR);
-		cloudRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBitmapTextureAtlas, this, "cloud_sprite.png", 0, 0);
-		mBitmapTextureAtlas.load();
-		BitmapTextureAtlas groundAtlas = new BitmapTextureAtlas(getTextureManager(), 700, 50, TextureOptions.BILINEAR);
-		groundRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(groundAtlas, this, "ground_sprite.png", 0, 0);
-		groundAtlas.load();
-		BitmapTextureAtlas starAtlas = new BitmapTextureAtlas(getTextureManager(), 120, 20);
-		starRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(starAtlas, this, "star_sprite.png", 0, 0, 6, 1);
-		starAtlas.load();
-		BitmapTextureAtlas astroAtlas = new BitmapTextureAtlas(getTextureManager(), 120, 60);
-		moonRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(astroAtlas, this, "moon_sprite.png", 0, 0);
-		astroAtlas.load();
+		resourceManager = new ResourceManager(getTextureManager(), this);
 	}
 	
 	public Scene getScene() {
@@ -243,6 +239,7 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 		if(astranomicalObject != null) {
 			astranomicalObject.detachSelf();
 		}
+	    ITextureRegion moonRegion = resourceManager.getAstroTexture(ResourceManager.ASTRO_MOON);
 		VertexBufferObjectManager manager = mEngine.getVertexBufferObjectManager();
 		astranomicalObject = new Sprite(CAMERA_WIDTH - 60, 50, moonRegion, manager);
 		bottomLayer.attachChild(astranomicalObject);
@@ -274,6 +271,7 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 		int starSpaceColumn = CAMERA_HEIGHT / (3 * starsInColumn);
 		Random random = new Random();
 		VertexBufferObjectManager manager = mEngine.getVertexBufferObjectManager();
+		TiledTextureRegion starRegion = resourceManager.getStarTexture();
 		for(int j = 0; j < starsInColumn; j++) {
 			for(int i = 0; i < starsInRow; i++){
 				Star star = new Star((float)i * starSpaceRow + random.nextInt(starSpaceRow - 10), (float)j * starSpaceColumn + random.nextInt(starSpaceColumn - 10), starRegion, manager, new WorldBundle(getPhysicsWorld(), bottomLayer));
@@ -285,7 +283,9 @@ public class MyWallpaperService extends BaseLiveWallpaperService  {
 	}
 	
 	private void deleteStars() {
-		starContainer.deleteStars();
+		if (starContainer != null) {
+			starContainer.deleteStars();
+		}
 		showStars = false;
 	}
 	

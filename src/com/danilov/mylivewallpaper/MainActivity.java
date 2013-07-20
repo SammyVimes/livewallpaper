@@ -13,10 +13,8 @@ import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
 import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.texture.region.ITiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
-import org.andengine.ui.IGameInterface.OnCreateResourcesCallback;
-import org.andengine.ui.IGameInterface.OnCreateSceneCallback;
-import org.andengine.ui.IGameInterface.OnPopulateSceneCallback;
 import org.andengine.ui.activity.BaseGameActivity;
 
 import android.content.Context;
@@ -35,7 +33,7 @@ public class MainActivity extends BaseGameActivity  {
     private Scene mScene;
     private PhysicsWorld mPhysicsWorld;
     private ScreenOrientation mScreenOrientation = ScreenOrientation.LANDSCAPE_FIXED;
-    private ITextureRegion cloudRegion;
+    private ITiledTextureRegion cloudRegion;
     private ITextureRegion groundRegion;
     private MyEntity bottomLayer;
     private MyEntity topLayer;
@@ -105,7 +103,7 @@ public class MainActivity extends BaseGameActivity  {
 	private void loadGameGraphics() {
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 		mBitmapTextureAtlas = new BitmapTextureAtlas(getTextureManager(), 512, 512, TextureOptions.BILINEAR);
-		cloudRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBitmapTextureAtlas, this, "cloud_sprite.png", 0, 0);
+//		cloudRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mBitmapTextureAtlas, this, "cloud_sprite.png", 0, 0);
 		mBitmapTextureAtlas.load();
 		BitmapTextureAtlas groundAtlas = new BitmapTextureAtlas(getTextureManager(), 700, 50, TextureOptions.BILINEAR);
 		groundRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(groundAtlas, this, "ground_sprite.png", 0, 0);
